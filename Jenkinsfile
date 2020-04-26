@@ -22,10 +22,14 @@ pipeline {
 //         }         
          stage('Deliver for development') {
             when {
-                branch 'development'
+                anyOf { branch 'master'; branch 'development' }
             }
             steps {
                  sh 'echo "Delivery to development steps come here"'
+                 withAWS(region:'eu-central-1',credentials:'ago-aws-credentials') {
+                      sh 'echo "Uploading content with AWS creds"'
+                      s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true, file:'index.html', bucket:'ago-jenkins-pipeline')
+                  }
             }
          }
          stage('Deliver for testing to staging') {
@@ -44,14 +48,5 @@ pipeline {
                  sh 'echo "Deploy for production steps come here"'
             }
          }
-        //  stage('Upload to AWS') {
-        //       steps {
-        //           withAWS(region:'us-east-2',credentials:'aws-static') {
-        //           sh 'echo "Uploading content with AWS creds"'
-        //               s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true, file:'index.html', bucket:'static-jenkins-pipeline')
-        //           }
-        //           sh 'echo "Why is this step here? Upload to AWS"'
-        //       }
-        // }
      }
 }
